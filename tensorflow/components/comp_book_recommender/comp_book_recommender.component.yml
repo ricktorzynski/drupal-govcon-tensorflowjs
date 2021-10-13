@@ -1,0 +1,8 @@
+name: TensorFlow.js Book Recommender
+description: Goodread Book Recommender
+template: index.html
+js:
+  tf_book_recommender_script.js: {}
+  web_book_data.js: {}
+dependencies:
+  - component/tensorflow_lib

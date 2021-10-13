@@ -1,0 +1,193 @@
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12">
+      <p>This example uses machine language to solve linear regression problem.</p>
+    </div>
+  </div>
+  <div class="accordion" id="accordionPanelsStayOpenExample">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+          Linear Regression Problem
+        </button>
+      </h2>
+      <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-headingOne">
+        <div class="accordion-body">   
+          <div class="row">
+            <div class="col-xs-12 col-sm-3">
+              <b>Data:</b><br>
+              <table>
+                <tr>
+                  <th>X</th>
+                  <th>Y</th>
+                </tr>
+                <tr>
+                  <td>-1.0</td>
+                  <td>-3.0</td>
+                </tr>
+                <tr>
+                  <td>0.0</td>
+                  <td>-1.0</td>
+                </tr>
+                <tr>
+                  <td>1.0</td>
+                  <td>2.0</td>
+                </tr>
+                <tr>
+                  <td>2.0</td>
+                  <td>3.0</td>
+                </tr>
+                <tr>
+                  <td>3.0</td>
+                  <td>5.0</td>
+                </tr>
+                <tr>
+                  <td>4.0</td>
+                  <td>7.0</td>
+                </tr>
+              </table>
+            </div>
+            <div class="col-xs-12 col-sm-9">
+              <img src="/sites/default/files/2021-09/Scatterplot.png" class="img-fluid">
+            </div>
+          </div>
+          <div class="row">
+        
+            <p>
+              <b>Linear regression equation</b><br>
+              Y<sub>pred</sub> = mx + b
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+           TensorFlow.js File
+        </button>
+      </h2>
+      <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingTwo">
+        <div class="accordion-body">
+          <pre>
+            (function ($, Drupal, window, document) {
+  
+              async function doTraining(model, xs, ys, num_epochs, fitCallbacks) {
+                const history =
+                  await model.fit(xs, ys,
+                    {
+                      epochs: num_epochs,
+                      callbacks: fitCallbacks
+                    });
+              }
+            
+              Drupal.behaviors.tfTraining = {
+                attach: function (context, settings) {
+                  
+                  $('#predict').once().click(function () {
+                    // Data definition and preprocessing
+                    const xs = tf.tensor2d([-1.0, 0.0, 1.0, 2.0, 3.0, 4.0], [6, 1]);
+                    const ys = tf.tensor2d([-3.0, -1.0, 2.0, 3.0, 5.0, 7.0], [6, 1]);
+            
+                    // Define model
+                    const model = tf.sequential();
+                    model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
+                    model.compile({
+                      loss: 'meanSquaredError',
+                      optimizer: 'sgd'
+                    });
+                    model.summary();
+                    
+                    // Get number of epochs from configuration
+                    const elem = document.querySelector(
+                      '.block-componentcomp-linear-reg-2 .content .comp_linear_reg_2'
+                    );
+                    const config = { ...elem.dataset};
+                    console.log(config);
+                    const num_epochs = config.epochs;
+            
+                    console.log("epochs = " + num_epochs);
+            
+                    // setup tsjs-vis
+                   
+                    
+                    // Data definition
+                    const values = [
+                      [{x: -1, y: -3}, {x: 0, y: -1}, {x: 1, y: 2}, {x: 2, y: 3}, {x: 3, y: 5}, {x: 5, y: 7}]
+                    ];
+                    series = ['Values'];
+                    const surface = tfvis.visor().surface({
+                      name: 'Model Training',
+                      tab: 'Scatterplot'
+                    });
+                    
+                    // Setup scatterplot
+                    tfvis.render.scatterplot(surface, {values, series}, {
+                      width: 400,
+                      xLabel: 'My x values',
+                      yLabel: 'My y values',
+                      xAxisDomain: ([-6, 10]),
+                      yAxisDomain: ([-6, 10])
+                    });
+            
+                    // Set up training history
+                    const metrics = ['loss', 'acc'];
+                    const container = { 
+                      name: 'Model Training', 
+                      tab: 'History',
+                      styles: { 
+                           height: '1000px' 
+                      }};
+            
+                    // Show model summary  
+                    tfvis.show.modelSummary(container, model);
+            
+                    // Define callback to show history at the end of each epoch
+                    const fitCallbacks = tfvis.show.fitCallbacks(container, metrics)
+            
+                    // Training and Prediction
+                    doTraining(model, xs, ys, num_epochs, fitCallbacks).then(() => {
+                      console.log('Y = ' + model.predict(tf.tensor2d([10], [1, 1])));
+                     
+                      for (let i = 0; i < model.getWeights().length; i++) {
+                        console.log(model.getWeights()[i].dataSync());
+                      }
+                    });
+                  });
+            
+                }
+              };
+            }(jQuery, Drupal, this, this.document));
+            
+          </pre>
+          <p>
+            <b>Notes:</b><br>
+            <code>optimizer: 'sgd'</code><br>
+            <a href="https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/SGD" target="_new">Stochastic Gradiant Descent</a><br>
+            <ul>
+              <li>Learning rate - how fast/slow model adjusts weights</li>
+              <li>Momentum - helps gradient descent vectors accelerate in the right direction, leading to faster convergence</li>
+            </ul>
+          </p>
+          <p>
+            <button id="predict">Train and Predict</button>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="panelsStayOpen-headingThree">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="false" aria-controls="panelsStayOpen-collapseThree">
+          Linear Regression Results Using Statistical Calculations
+        </button>
+      </h2>
+      <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingThree">
+        <div class="accordion-body">
+          <img src="http://drupalml.com/sites/default/files/2021-09/Quick-Linear-Regression-Calculator.png" class="img-fluid">
+        </div>
+      </div>
+    </div>
+    
+  </div>
+
+</div>

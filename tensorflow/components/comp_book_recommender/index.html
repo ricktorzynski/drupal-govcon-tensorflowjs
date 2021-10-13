@@ -1,0 +1,129 @@
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12">
+      <p>This is an example of a recommender using a pre-trained model.</p>
+    </div>
+  </div>
+  <div class="accordion" id="accordionPanelsStayOpenExample">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+          Book Recommender
+        </button>
+      </h2>
+      <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-headingOne">
+        <div class="accordion-body">   
+          <div class="row">
+            <h2>Building a Recommender System Using Drupal and TensorFlow.js</h2>
+            <p>Adapted from <a href="https://heartbeat.fritz.ai/build-train-and-deploy-a-book-recommender-system-using-keras-tensorflow-js-b96944b936a7" target="_new">Build, Train, and Deploy a Book Recommender System Using Keras, TensorFlow.js, Node.js, and Firebase (Part 1)</a>.
+               Instead of using Node.js and Firebase, I will be using Drupal 9, the Component module, and the TensorFlow.js module.
+            </p>
+            <p>The loading of the data, preprocessing the data, model building and model training will be done through a <a href="https://colab.research.google.com/drive/1BF5v-DnM3Hxb_d2jV5O7HRQHT_WB9wrt#scrollTo=r_d2423O_gmj" target="_new">Google Colab notebook</a>, and the model will be exported and used by Drupal to do inference using TensorFlow.js.</p>
+          </div>
+          <div class="row">
+        
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+           tf_book_recommender_script.js File
+        </button>
+      </h2>
+      <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingTwo">
+        <div class="accordion-body">
+          <pre>
+            <code>
+            (function ($, Drupal, window, document) {
+
+              async function loadModel(){
+                const MODEL_URL = '/modules/custom/tensorflow/models/book_recommender/model.json';
+                const model = await tf.loadLayersModel(MODEL_URL)
+                console.log(model.summary())
+                return model;
+              }
+            
+              function getRecommendations() {
+                const userId = document.getElementById("userId").value;
+                recommend(userId).then((value) => display(value))
+              }
+            
+              function display(recommendations) {
+                const output = document.getElementById("output");
+                console.log(recommendations.length)
+                console.log(recommendations)
+                output.innerHTML = ""
+                for (i = 0; i < recommendations.length; i++) {
+                  data = recommendations[i]
+                  num = i + 1
+                  output.innerHTML += "&lt;b&gt;Recommendation #" + num + "&lt;/b&gt;&lt;br&gt;";
+                  output.innerHTML += "&lt;img src=\"" + data.image_url + "\" title=\"" + data.title + "\"&gt;&lt;br&gt;";
+                  output.innerHTML += "Title: " + data.title + "&lt;br&gt;";
+                  output.innerHTML += "Author(s): " + data.authors + "&lt;/br&gt;";
+                  output.innerHTML += "Publication Year: " + parseInt(data.original_publication_year) + "&lt;p&gt;";
+                }
+              }
+            
+              async function recommend(userId) {
+                
+                const book_len = books.length
+                const book_arr = tf.range(0, books.length)
+                let user = tf.fill([book_len], Number(userId))
+            
+                let book_in_js_array = book_arr.arraySync()
+                model = await loadModel();
+                console.log(`Recommending for User: ${userId}`)
+                pred_tensor = await model.predict([book_arr, user]).reshape([10000])
+                pred = pred_tensor.arraySync()
+            
+                let recommendations = []
+                for (let i = 0; i < 5; i++) {
+                  max = pred_tensor.argMax().arraySync()
+                  recommendations.push(books[max]) //Push book with highest prediction probability
+                  pred.splice(max, 1)    //drop from array
+                  pred_tensor = tf.tensor(pred) //create a new tensor
+                }
+                return recommendations
+              }
+            
+              Drupal.behaviors.Predict = {
+                attach: function (context, settings) {
+                  $('#recommend').once().click(function () {      
+                    getRecommendations();
+                  });
+                }
+              };
+            
+            }(jQuery, Drupal, this, this.document));
+
+
+          </pre>
+          <p>
+            <b>Notes:</b><br>
+            
+          </p>
+          <div style="min-height: 300px">
+            <form>
+              User ID: <input id="userId" name="userId" size="5" >
+            
+            </form>
+            <button id="recommend">Get Recommendations!</button>
+            <div class="container">
+              <div class="row">
+                <div id="output">
+            
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div style="min-height:100px;">
+</div>
+

@@ -1,0 +1,13 @@
+name: TensorFlow Linear Regression 2
+description: Training a simple linear regression model and using Tensor Visualization
+template: index.html
+js:
+  tf_linear_reg_2.js: {}
+dependencies:
+  - component/tensorflow_lib
+form_configuration:
+  epochs:
+    type: textfield
+    title: 'Number of Epochs'
+    default_value: '50'
+
